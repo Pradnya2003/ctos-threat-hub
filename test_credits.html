@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Credit System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Credit System Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testCreditSystem() {
+            const results = document.getElementById('results');
+            
+            try {
+                results.innerHTML += '<p class="info">🔄 Testing backend connection...</p>';
+                
+                // Test login
+                const loginResponse = await fetch('http://localhost:8000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'admin@test.com', password: 'test123' }),
+                    mode: 'cors'
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error(`Login failed: ${loginResponse.status} ${loginResponse.statusText}`);
+                }
+                
+                const loginData = await loginResponse.json();
+                results.innerHTML += `<p class="success">✅ Login Success: Token received</p>`;
+                results.innerHTML += `<p class="info">📝 Token: ${loginData.access_token.substring(0, 20)}...</p>`;
+                results.innerHTML += `<p class="info">⏰ Expires In: ${loginData.expires_in}s</p>`;
+                
+                // Test user profile
+                results.innerHTML += '<p class="info">🔄 Testing user profile...</p>';
+                const profileResponse = await fetch('http://localhost:8000/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${loginData.access_token}` },
+                    mode: 'cors'
+                });
+                
+                if (!profileResponse.ok) {
+                    throw new Error(`Profile failed: ${profileResponse.status} ${profileResponse.statusText}`);
+                }
+                
+                const profileData = await profileResponse.json();
+                results.innerHTML += `<p class="success">✅ User Profile Retrieved</p>`;
+                results.innerHTML += `<p class="info">👤 User: ${profileData.email}</p>`;
+                results.innerHTML += `<p class="info">👑 Is Admin: ${profileData.is_admin ? 'YES' : 'NO'}</p>`;
+                results.innerHTML += `<p class="info">🆔 User ID: ${profileData.id}</p>`;
+                
+                results.innerHTML += '<h2 class="success">🎉 Backend API Working Properly!</h2>';
+                results.innerHTML += '<p class="info">📱 Now test the frontend at: <a href="http://localhost:3001" target="_blank">http://localhost:3001</a></p>';
+                results.innerHTML += '<p class="info">🔑 Login with: admin@test.com / test123</p>';
+                results.innerHTML += '<p class="info">💚 Look for emerald green credits with ∞ symbol in navbar</p>';
+                
+            } catch (error) {
+                results.innerHTML += `<p class="error">❌ Error: ${error.message}</p>`;
+                results.innerHTML += '<p class="error">💡 Make sure backend is running on http://localhost:8000</p>';
+                results.innerHTML += '<p class="error">💡 Check browser console for more details</p>';
+            }
+        }
+        
+        // Auto-run test
+        testCreditSystem();
+        
+        // Add refresh button
+        const refreshBtn = document.createElement('button');
+        refreshBtn.textContent = '🔄 Refresh Test';
+        refreshBtn.onclick = testCreditSystem;
+        refreshBtn.style.marginTop = '20px';
+        refreshBtn.style.padding = '10px 20px';
+        refreshBtn.style.fontSize = '16px';
+        document.body.appendChild(refreshBtn);
+    </script>
+</body>
+</html>
